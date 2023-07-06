@@ -54,7 +54,7 @@ class ViewListEventTest extends CriteoTagTestCase
         $this->assertTrue($this->hasEvent($events,ViewSearchEvent::class));
     }
 
-    public function testViewListWithInvalidDateEvent()
+    public function testViewListEventWithInvalidDate()
     {
         $date = "not a date";
         $this->expectException(InvalidArgumentException::class);

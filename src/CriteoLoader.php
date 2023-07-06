@@ -13,6 +13,7 @@ use Mmoutih\CriteoTracker\TagsEvents\ViewPageEvent;
 use Mmoutih\CriteoTracker\TagsEvents\PlainEmailEvent;
 use Mmoutih\CriteoTracker\TagsEvents\HashedEmailEvent;
 use Mmoutih\CriteoTracker\Exceptions\InvalidArgumentException;
+use Mmoutih\CriteoTracker\TagsEvents\ViewItemEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewListEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewSearchEvent;
 
@@ -81,6 +82,14 @@ final class CriteoLoader
 
     /**
      * Add viewList to do events list
+     * @param array $itemsIds Should ne an array of alphanumeric entries, it throw InvalidArgumentException it not.
+     * @param string|int $categoryId Optional.
+     * @param string $keywords Optional. Keywords of the search landing to the page.
+     * @param string|DateTime $checkin Optional. throw InvalidArgumentException if is not a valid date
+     * @param string|DateTime $checkout Optional. throw InvalidArgumentException if is not a valid date
+     * @param int $nbrAdults Optional.
+     * @param int $nbrChildren Optional.
+     * @param int $nbrInfants Optional.
      */
     public function viewListPage(
         array $itemsIds = null,
@@ -90,10 +99,37 @@ final class CriteoLoader
         string|DateTime $checkout = null,
         int $nbrAdults = null,
         int $nbrChildren = null,
-        int $nbrInfants = null,
+        int $nbrInfants = null
     ): self {
         $this->validateItemsIds($itemsIds);
         $this->handelViewListEvent($itemsIds, $categoryId, $keywords);
+        list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
+        $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
+        return $this;
+    }
+
+    /**
+     * Add viewItem to do events list
+     * @param string $itemId Should ne an array of alphanumeric entries, it throw InvalidArgumentException it not.
+     * @param string|DateTime $checkin Optional. throw InvalidArgumentException if is not a valid date
+     * @param string|DateTime $checkout Optional. throw InvalidArgumentException if is not a valid date
+     * @param int $nbrAdults Optional.
+     * @param int $nbrChildren Optional.
+     * @param int $nbrInfants Optional.
+     */
+    public function viewItemPage(
+        string $itemId,
+        string|DateTime $checkin = null,
+        string|DateTime $checkout = null,
+        int $nbrAdults = null,
+        int $nbrChildren = null,
+        int $nbrInfants = null
+    ): self
+    {
+        $itemId = trim($itemId);
+        if(empty( $itemId) or $this->IsValidId($itemId))
+            throw new InvalidArgumentException("Invalid id, id should be alphanumerical value.", 3);
+        $this->addEvent(new ViewItemEvent( $itemId));
         list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
         $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
         return $this;
@@ -125,7 +161,7 @@ final class CriteoLoader
     protected function handelAccountEvent(string $idCriteo): void
     {
         $idCriteo = trim($idCriteo);
-        if (empty($idCriteo) or preg_match('/[^a-z_\-0-9]/i', $idCriteo))
+        if (empty($idCriteo) or  $this->IsValidId($idCriteo))
             throw new InvalidArgumentException('idCriteo can not be empty or not an alphanumeric string', 1);
         $this->addEvent(new AccountEvent($idCriteo));
     }
@@ -205,10 +241,18 @@ final class CriteoLoader
             throw new InvalidArgumentException("itemsIds can not be empty", 3);
         $filteredItemsIds = array_filter(
             $itemsIds,
-            fn ($id) => !is_array($id) && !is_object($id)
+            fn ($id) => $this->IsValidId($id)
         );
         if (count($filteredItemsIds) !== count($itemsIds))
             throw new InvalidArgumentException("Some item ids are not valid ids", 3);
+    }
+
+    /**
+     * check if is id has valid alphanumeric format
+     */
+    protected function isValidId(mixed $id): bool
+    {
+        return !is_array($id) && !is_object($id) && (preg_match('/[^a-z_\-0-9]/i', $id) || is_int($id));
     }
 
     /**

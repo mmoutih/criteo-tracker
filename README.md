@@ -6,7 +6,7 @@
 - [x] handel default tags
 - [x] handel Homepage Tag
 - [x] handel Listing And Search Tag
-- [ ] handel Product Tag
+- [x] handel Product Tag
 - [ ] handel Add To Cart Tag
 - [ ] handel Basket Tag 
 - [ ] handel Conversion Tag

@@ -12,4 +12,5 @@ class EventNames
     CONST VIEW_HOME_EVENT = "viewHome";
     CONST VIEW_LIST_EVENT = "viewList";
     CONST VIEW_SEARCH_EVENT = "viewSearch";
+    CONST VIEW_ITEM_EVENT = "viewItem";
 }
