@@ -9,4 +9,7 @@ class EventNames
     CONST ZIP_CODE_EVENT = "setZipcode";
     CONST VIEW_PAGE_EVENT = "viewPage";
     CONST ACCOUNT_EVENT = "setAccount";
+    CONST VIEW_HOME_EVENT = "viewHome";
+    CONST VIEW_LIST_EVENT = "viewList";
+    CONST VIEW_SEARCH_EVENT = "viewSearch";
 }
