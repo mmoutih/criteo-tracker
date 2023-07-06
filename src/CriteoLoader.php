@@ -3,19 +3,19 @@
 namespace Mmoutih\CriteoTracker;
 
 use DateTime;
-use Exception;
 use Mmoutih\CriteoTracker\TagsEvents\Event;
 use Mmoutih\CriteoTracker\TagsEvents\AccountEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ZipCodeEvent;
 use Mmoutih\CriteoTracker\TagsEvents\SiteTypeEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewHomeEvent;
-use Mmoutih\CriteoTracker\TagsEvents\ViewPageEvent;
-use Mmoutih\CriteoTracker\TagsEvents\PlainEmailEvent;
-use Mmoutih\CriteoTracker\TagsEvents\HashedEmailEvent;
-use Mmoutih\CriteoTracker\Exceptions\InvalidArgumentException;
 use Mmoutih\CriteoTracker\TagsEvents\ViewItemEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewListEvent;
+use Mmoutih\CriteoTracker\TagsEvents\ViewPageEvent;
+use Mmoutih\CriteoTracker\TagsEvents\AddToCartEvent;
+use Mmoutih\CriteoTracker\TagsEvents\PlainEmailEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewSearchEvent;
+use Mmoutih\CriteoTracker\TagsEvents\HashedEmailEvent;
+use Mmoutih\CriteoTracker\Exceptions\InvalidArgumentException;
 
 final class CriteoLoader
 {
@@ -71,7 +71,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add viewHome to do events list
+     * Add viewHome to the events list
      * @return self
      */
     public function viewHomePage(): self
@@ -81,7 +81,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add viewList to do events list
+     * Add viewList to the events list
      * @param array $itemsIds Should ne an array of alphanumeric entries, it throw InvalidArgumentException it not.
      * @param string|int $categoryId Optional.
      * @param string $keywords Optional. Keywords of the search landing to the page.
@@ -109,7 +109,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add viewItem to do events list
+     * Add viewItem to the events list
      * @param string $itemId Should ne an array of alphanumeric entries, it throw InvalidArgumentException it not.
      * @param string|DateTime $checkin Optional. throw InvalidArgumentException if is not a valid date
      * @param string|DateTime $checkout Optional. throw InvalidArgumentException if is not a valid date
@@ -136,6 +136,15 @@ final class CriteoLoader
     }
 
     /**
+     * Add addToCart to the event lists
+     */
+    public function addToCartEvent(array $item): self
+    {
+        $this->addEvent(new AddToCartEvent([$item]));
+        return $this;
+    }
+
+    /**
      * add event
      * @param Event $event
      * @return self
@@ -156,7 +165,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add setAccount event to do events list, if idCriteo is empty  or is not an alphanumeric string it throw an InvalidArgumentException
+     * Add setAccount event to the events list, if idCriteo is empty  or is not an alphanumeric string it throw an InvalidArgumentException
      */
     protected function handelAccountEvent(string $idCriteo): void
     {
@@ -167,7 +176,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add setEmail event to do events list if email is not empty
+     * Add setEmail event to the events list if email is not empty
      */
     protected function handelEmailEvent(?string $clientEmail, bool $shouldHashEmail): void
     {
@@ -181,7 +190,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add siteType event to do events list after checking it's value.
+     * Add siteType event to the events list after checking it's value.
      * If the value is not 'd' or 'm' it will throw InvalidArgumentException. 
      */
     protected function handelSiteTypeEvent(string $siteType): void
@@ -194,7 +203,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add setZipcode event to do events list if zipCode is not empty
+     * Add setZipcode event to the events list if zipCode is not empty
      */
     protected function handelZipCodeEvent(?string $zipCode): void
     {
@@ -204,7 +213,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add viewPage event to de events list if isViewPage is set to true.
+     * Add viewPage event to the events list if isViewPage is set to true.
      */
     protected function handelViewPageEvent(bool $isViewPage): void
     {
@@ -214,7 +223,7 @@ final class CriteoLoader
     }
 
     /**
-     * Add ViewListEvent event to de events.
+     * Add ViewListEvent event to the events.
      */
     protected function handelViewListEvent(?array $itemsIds, ?string $categoryId, ?string $keywords): void
     {
@@ -227,6 +236,33 @@ final class CriteoLoader
         if (!empty($keywords))
             $viewListEvent->setKeywords($keywords);
         $this->addEvent($viewListEvent);
+    }
+
+    /**
+     * Add ViewSearchEvent event to the events.
+     * @param string $checkin Optional
+     * @param string $checkout Optional
+     * @param int $nbrAdults Optional
+     * @param int $nbrChildren Optional
+     * @param int $nbrInfants Optional
+     */
+    protected function handelViewSearchEvent(
+        ?string $checkin,
+        ?string $checkout,
+        ?int $nbrAdults,
+        ?int $nbrChildren,
+        ?int $nbrInfants
+    ): void {
+        if (empty($checkin) && empty($checkout))
+            return;
+        $viewSearchEvent = new ViewSearchEvent();
+        if (!empty($checkin)) $viewSearchEvent->setCheckinDate($checkin);
+        if (!empty($checkout)) $viewSearchEvent->setCheckoutDate($checkout);
+        if (!empty($nbrAdults)) $viewSearchEvent->setNbra($nbrAdults);
+        if (!empty($nbrChildren)) $viewSearchEvent->setNbrc($nbrChildren);
+        if (!empty($nbrInfants)) $viewSearchEvent->setNbri($checkin);
+
+        $this->addEvent($viewSearchEvent);
     }
 
     /**
@@ -270,7 +306,6 @@ final class CriteoLoader
         return [$checkin, $checkout];
     }
 
-
     /**
      * format date to ISO 8601 from DateTime our string date.
      * throw InvalidArgumentException if not a valid string date 
@@ -288,30 +323,4 @@ final class CriteoLoader
         return $date->format("Y-m-d\TH:i:s");
     }
 
-    /**
-     * Add ViewSearchEvent event to de events.
-     * @param string $checkin Optional
-     * @param string $checkout Optional
-     * @param int $nbrAdults Optional
-     * @param int $nbrChildren Optional
-     * @param int $nbrInfants Optional
-     */
-    protected function handelViewSearchEvent(
-        ?string $checkin,
-        ?string $checkout,
-        ?int $nbrAdults,
-        ?int $nbrChildren,
-        ?int $nbrInfants
-    ): void {
-        if (empty($checkin) && empty($checkout))
-            return;
-        $viewSearchEvent = new ViewSearchEvent();
-        if (!empty($checkin)) $viewSearchEvent->setCheckinDate($checkin);
-        if (!empty($checkout)) $viewSearchEvent->setCheckoutDate($checkout);
-        if (!empty($nbrAdults)) $viewSearchEvent->setNbra($nbrAdults);
-        if (!empty($nbrChildren)) $viewSearchEvent->setNbrc($nbrChildren);
-        if (!empty($nbrInfants)) $viewSearchEvent->setNbri($checkin);
-
-        $this->addEvent($viewSearchEvent);
-    }
 }

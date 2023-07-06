@@ -11,4 +11,3 @@
 - [ ] handel Basket Tag 
 - [ ] handel Conversion Tag
 - [ ] handel footer script tag
-- [ ] add static call for main tags
