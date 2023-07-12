@@ -124,12 +124,11 @@ final class CriteoLoader
         int $nbrAdults = null,
         int $nbrChildren = null,
         int $nbrInfants = null
-    ): self
-    {
+    ): self {
         $itemId = trim($itemId);
-        if(empty( $itemId) or !$this->IsValidId($itemId))
+        if (empty($itemId) or !$this->IsValidId($itemId))
             throw new InvalidArgumentException("Invalid id, id should be alphanumerical value.", 3);
-        $this->addEvent(new ViewItemEvent( $itemId));
+        $this->addEvent(new ViewItemEvent($itemId));
         list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
         $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
         return $this;
@@ -137,11 +136,25 @@ final class CriteoLoader
 
     /**
      * Add addToCart to the event lists
+     * @param array $item Should be an array  [id,price,quantity], it throw InvalidArgumentException it not.
+     * @param string|DateTime $checkin Optional. throw InvalidArgumentException if is not a valid date
+     * @param string|DateTime $checkout Optional. throw InvalidArgumentException if is not a valid date
+     * @param int $nbrAdults Optional.
+     * @param int $nbrChildren Optional.
+     * @param int $nbrInfants Optional.
      */
-    public function addToCartEvent(array $item): self
-    {
+    public function addToCartEvent(
+        array $item,
+        string|DateTime $checkin = null,
+        string|DateTime $checkout = null,
+        int $nbrAdults = null,
+        int $nbrChildren = null,
+        int $nbrInfants = null
+    ): self {
         $this->validateItem($item);
         $this->addEvent(new AddToCartEvent([$item]));
+        list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
+        $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
         return $this;
     }
 
@@ -228,7 +241,7 @@ final class CriteoLoader
      */
     protected function handelViewListEvent(?array $itemsIds, ?string $categoryId, ?string $keywords): void
     {
-        if(empty($itemsIds))
+        if (empty($itemsIds))
             return;
         $viewListEvent = new ViewListEvent();
         $viewListEvent->setItems($itemsIds);
@@ -272,7 +285,7 @@ final class CriteoLoader
      */
     protected function validateItemsIds(?array $itemsIds): void
     {
-        if(is_null($itemsIds))
+        if (is_null($itemsIds))
             return;
         if (empty($itemsIds))
             throw new InvalidArgumentException("itemsIds can not be empty", 3);
@@ -286,9 +299,9 @@ final class CriteoLoader
 
     public function validateItem(array $item)
     {
-        $keys=["id","price","quantity"];
-       
-        if(!key_exists('id',$item) || !$this->isValidId($item['id']))
+        $keys = ["id", "price", "quantity"];
+
+        if (!key_exists('id', $item) || !$this->isValidId($item['id']))
             throw new InvalidArgumentException("Item id is not a valid id", 5);
 
         //$item_keys= array_keys($item);
@@ -300,17 +313,16 @@ final class CriteoLoader
      */
     protected function isValidId(mixed $id): bool
     {
-        
+
         return !is_array($id) && !is_object($id) && $this->regex($id);
     }
 
     private function regex(mixed $id): bool
     {
-        preg_match('/[a-z_\-0-9]+/i', $id,$matches);
-        foreach($matches as $match)
-            if($match == $id) return true;
+        preg_match('/[a-z_\-0-9]+/i', $id, $matches);
+        foreach ($matches as $match)
+            if ($match == $id) return true;
         return false;
-
     }
 
     /**
@@ -344,5 +356,4 @@ final class CriteoLoader
         }
         return $date->format("Y-m-d\TH:i:s");
     }
-
 }

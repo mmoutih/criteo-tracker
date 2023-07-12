@@ -7,7 +7,7 @@
 - [x] handel Homepage Tag
 - [x] handel Listing And Search Tag
 - [x] handel Product Tag
-- [ ] handel Add To Cart Tag
+- [x] handel Add To Cart Tag
 - [ ] handel Basket Tag 
 - [ ] handel Conversion Tag
 - [ ] handel footer script tag
