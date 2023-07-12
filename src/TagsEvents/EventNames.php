@@ -14,4 +14,5 @@ class EventNames
     CONST VIEW_SEARCH_EVENT  = "viewSearch";
     CONST VIEW_ITEM_EVENT    = "viewItem";
     CONST ADD_TO_CARTE_EVENT = "addToCart";
+    CONST VIEW_BASKET_EVENT  = "viewBasket";
 }

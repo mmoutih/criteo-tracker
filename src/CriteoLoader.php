@@ -16,6 +16,7 @@ use Mmoutih\CriteoTracker\TagsEvents\PlainEmailEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewSearchEvent;
 use Mmoutih\CriteoTracker\TagsEvents\HashedEmailEvent;
 use Mmoutih\CriteoTracker\Exceptions\InvalidArgumentException;
+use Mmoutih\CriteoTracker\TagsEvents\ViewBasketEvent;
 
 final class CriteoLoader
 {
@@ -153,6 +154,33 @@ final class CriteoLoader
     ): self {
         $this->validateItem($item);
         $this->addEvent(new AddToCartEvent([$item]));
+        list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
+        $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
+        return $this;
+    }
+
+    /**
+     * Add addToCart to the event lists
+     * @param array $items Should be an array  [[id,price,quantity]], it throw InvalidArgumentException it not.
+     * @param string|DateTime $checkin Optional. throw InvalidArgumentException if is not a valid date
+     * @param string|DateTime $checkout Optional. throw InvalidArgumentException if is not a valid date
+     * @param int $nbrAdults Optional.
+     * @param int $nbrChildren Optional.
+     * @param int $nbrInfants Optional.
+     */
+    public function viewBasketEvent(
+        array $items,
+        string|DateTime $checkin = null,
+        string|DateTime $checkout = null,
+        int $nbrAdults = null,
+        int $nbrChildren = null,
+        int $nbrInfants = null
+    ): self {
+        if(empty($items))
+            throw new InvalidArgumentException("Item id is not a valid id", 5);
+        foreach($items as $item)
+            $this->validateItem($item);
+        $this->addEvent(new ViewBasketEvent($items));
         list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
         $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
         return $this;
@@ -303,9 +331,6 @@ final class CriteoLoader
 
         if (!key_exists('id', $item) || !$this->isValidId($item['id']))
             throw new InvalidArgumentException("Item id is not a valid id", 5);
-
-        //$item_keys= array_keys($item);
-        //$unknownKeys = array_filter();
     }
 
     /**
