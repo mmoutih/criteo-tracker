@@ -127,7 +127,7 @@ final class CriteoLoader
     ): self
     {
         $itemId = trim($itemId);
-        if(empty( $itemId) or $this->IsValidId($itemId))
+        if(empty( $itemId) or !$this->IsValidId($itemId))
             throw new InvalidArgumentException("Invalid id, id should be alphanumerical value.", 3);
         $this->addEvent(new ViewItemEvent( $itemId));
         list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
@@ -140,6 +140,7 @@ final class CriteoLoader
      */
     public function addToCartEvent(array $item): self
     {
+        $this->validateItem($item);
         $this->addEvent(new AddToCartEvent([$item]));
         return $this;
     }
@@ -170,7 +171,7 @@ final class CriteoLoader
     protected function handelAccountEvent(string $idCriteo): void
     {
         $idCriteo = trim($idCriteo);
-        if (empty($idCriteo) or  $this->IsValidId($idCriteo))
+        if (empty($idCriteo) ||  !$this->IsValidId($idCriteo))
             throw new InvalidArgumentException('idCriteo can not be empty or not an alphanumeric string', 1);
         $this->addEvent(new AccountEvent($idCriteo));
     }
@@ -283,12 +284,33 @@ final class CriteoLoader
             throw new InvalidArgumentException("Some item ids are not valid ids", 3);
     }
 
+    public function validateItem(array $item)
+    {
+        $keys=["id","price","quantity"];
+       
+        if(!key_exists('id',$item) || !$this->isValidId($item['id']))
+            throw new InvalidArgumentException("Item id is not a valid id", 5);
+
+        //$item_keys= array_keys($item);
+        //$unknownKeys = array_filter();
+    }
+
     /**
      * check if is id has valid alphanumeric format
      */
     protected function isValidId(mixed $id): bool
     {
-        return !is_array($id) && !is_object($id) && (preg_match('/[^a-z_\-0-9]/i', $id) || is_int($id));
+        
+        return !is_array($id) && !is_object($id) && $this->regex($id);
+    }
+
+    private function regex(mixed $id): bool
+    {
+        preg_match('/[a-z_\-0-9]+/i', $id,$matches);
+        foreach($matches as $match)
+            if($match == $id) return true;
+        return false;
+
     }
 
     /**
