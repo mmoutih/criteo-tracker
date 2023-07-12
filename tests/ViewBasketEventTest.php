@@ -9,7 +9,7 @@ use Mmoutih\CriteoTracker\TagsEvents\ViewBasketEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewSearchEvent;
 use Mmoutih\CriteoTracker\Exceptions\InvalidArgumentException;
 
-class ViewBasketEventTestCase extends CriteoTagTestCase
+class ViewBasketEventTest extends CriteoTagTestCase
 {
     public function testViewBasketEventWithoutDate()
     {
@@ -28,7 +28,7 @@ class ViewBasketEventTestCase extends CriteoTagTestCase
     public function testViewBasketEventWithInvalidItem()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Item id is not a valid id");
+        $this->expectExceptionMessage("Items can not be empty");
         $this->expectExceptionCode(5);
         $this->loader->ViewBasketEvent([])->getEvents();
     }

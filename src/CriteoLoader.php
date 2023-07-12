@@ -13,10 +13,11 @@ use Mmoutih\CriteoTracker\TagsEvents\ViewListEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewPageEvent;
 use Mmoutih\CriteoTracker\TagsEvents\AddToCartEvent;
 use Mmoutih\CriteoTracker\TagsEvents\PlainEmailEvent;
+use Mmoutih\CriteoTracker\TagsEvents\ViewBasketEvent;
 use Mmoutih\CriteoTracker\TagsEvents\ViewSearchEvent;
 use Mmoutih\CriteoTracker\TagsEvents\HashedEmailEvent;
+use Mmoutih\CriteoTracker\TagsEvents\TrackTransactionEvent;
 use Mmoutih\CriteoTracker\Exceptions\InvalidArgumentException;
-use Mmoutih\CriteoTracker\TagsEvents\ViewBasketEvent;
 
 final class CriteoLoader
 {
@@ -177,10 +178,41 @@ final class CriteoLoader
         int $nbrInfants = null
     ): self {
         if(empty($items))
-            throw new InvalidArgumentException("Item id is not a valid id", 5);
+            throw new InvalidArgumentException("Items can not be empty", 5);
         foreach($items as $item)
             $this->validateItem($item);
         $this->addEvent(new ViewBasketEvent($items));
+        list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
+        $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
+        return $this;
+    }
+
+    /**
+     * Add addToCart to the event lists
+     * @param string $transactionId Should ne an array of alphanumeric entries, it throw InvalidArgumentException it not.
+     * @param array $items Should be an array  [[id,price,quantity]], it throw InvalidArgumentException it not.
+     * @param string|DateTime $checkin Optional. throw InvalidArgumentException if is not a valid date
+     * @param string|DateTime $checkout Optional. throw InvalidArgumentException if is not a valid date
+     * @param int $nbrAdults Optional.
+     * @param int $nbrChildren Optional.
+     * @param int $nbrInfants Optional.
+     */
+    public function trackTransactionEvent(
+        string $transactionId,
+        array $items,
+        string|DateTime $checkin = null,
+        string|DateTime $checkout = null,
+        int $nbrAdults = null,
+        int $nbrChildren = null,
+        int $nbrInfants = null
+    ): self {
+        if(empty($transactionId) || !$this->isValidId($transactionId))
+            throw new InvalidArgumentException("invalid transaction id", 6);
+        if(empty($items))
+            throw new InvalidArgumentException("Items can not be empty", 5);
+        foreach($items as $item)
+            $this->validateItem($item);
+        $this->addEvent(new TrackTransactionEvent($transactionId, $items));
         list($checkin, $checkout) = $this->validateDates($checkin, $checkout);
         $this->handelViewSearchEvent($checkin, $checkout, $nbrAdults, $nbrChildren, $nbrInfants);
         return $this;
