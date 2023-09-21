@@ -73,6 +73,77 @@ final class CriteoLoader
     }
 
     /**
+     * return javascript script that we include in the footer
+     * @param bool|int $differed differ the execution of the script if set to an int, value in millisecond, by default to false
+     * @param string $callbackError javascript code to be executed if tracking failed
+     * @return string 
+     */
+    public function getCriteoTracingScript(bool|int $differed = false,string $callbackError = ''): string
+    {
+        $jsEvent = json_encode($this->events);
+        return $differed !== false && is_int($differed)? 
+            $this->differedJsScript($jsEvent, $differed, $callbackError):
+            $this->jsScript($jsEvent, $callbackError);
+       
+    }
+
+     /**
+     * return javascript script that we include in the footer
+     * @param string $jsEvent javascript array of the events to be traced 
+     * @param string $callbackError javascript code to be executed if tracking failed
+     * @return string 
+     */
+    private function jsScript(string $jsEvent, string $callbackError = '') : string
+    {
+        return <<<SCRIPT
+        <script type="text/javascript">
+        (function() {
+            try {
+                window.criteo_q = window.criteo_q || [];
+                let events  = {$jsEvent};
+                events.forEach(element => {
+                    window.criteo_q.push(element)
+                });
+            }catch (err) {
+                {$callbackError}
+            }
+        })();
+        </script>
+        SCRIPT;
+    }
+
+    /**
+     * return javascript script that we include in the footer differed 
+     * @param string $jsEvent javascript array of the events to be traced 
+     * @param int $differed differ the execution of the script if set to an int, value in millisecond
+     * @param string $callbackError javascript code to be executed if tracking failed
+     * @return string 
+     */
+    private function differedJsScript(string $jsEvent, int $differed,string $callbackError): string
+    {
+        return <<<SCRIPT
+        <script type="text/javascript">
+        (function() {
+            try {
+                window.setTimeout(
+                function(){
+                    window.criteo_q = window.criteo_q || [];
+                    let events  = {$jsEvent};
+                    events.forEach(element => {
+                        window.criteo_q.push(element)
+                    });
+                }, {$differed});
+            } catch (err) {
+                {$callbackError}
+            }
+        })();
+        </script>
+        SCRIPT;
+    }
+
+    
+
+    /**
      * Add viewHome to the events list
      * @return self
      */
