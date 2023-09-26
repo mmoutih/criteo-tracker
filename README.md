@@ -5,8 +5,8 @@ Ce package PHP simplifie l'intégration des tags Criteo dans vos pages PHP, ce q
 ## Table des matières
 - Installation
 - Utilisation
-- Exemple
-- Contribution
+- Exemples
+
 
 ## Installation
 
@@ -146,6 +146,86 @@ $loader->viewItemPage(itemsIds:['PRODUCT_1','PRODUCT_2'],
     checkout: 'DATE_CHECKOUT',
     categoryId: 'CATEGORY',
     keywords: 'keywords describing page'
+);
+
+// Affichez le tag dans votre page HTML avant la fermeture du body 
+
+echo  $loader->getCriteoTracingScript(5000);
+
+```
+
+### Basket view event
+
+```php
+<?php
+// index.php
+
+require 'vendor/autoload.php';
+
+use Mmoutih\CriteoTracker\CriteoLoader  ;
+
+
+// Initialisez Criteo en passant votre ID Criteo
+$loader  = CriteoLoader::init('VOTRE_ID_CRITEO');
+
+// Obtenez le code JavaScript pour inclure le fichier distant  Criteo
+$header = $this->loader->getCriteoLoaderFile();
+echo '<head>';
+echo $header;
+echo '</head>';
+
+$items =  [
+    ["id" => "prudct_id_1", "price" => 200, "quantity"=> 1]
+];
+// Affichez la vue d'une page de baskets en passant les IDS des produits, quantités et prix
+// ainsi que des options spécifiques à la page, par exemple les dates de check-in et de check-out
+$loader->viewBasketEvent(items:$items, 
+    checkin: 'DATE_CHECKIN',
+    checkout: 'DATE_CHECKOUT',
+    nbrAdults: 'NUMBER_ADULTS',
+    nbrChildren: 'NUMBER_CHILDS',
+    nbrInfants: "NUMBER_INFANTS"
+);
+
+// Affichez le tag dans votre page HTML avant la fermeture du body 
+
+echo  $loader->getCriteoTracingScript(5000);
+
+```
+
+### Track transaction event
+
+```php
+<?php
+// index.php
+
+require 'vendor/autoload.php';
+
+use Mmoutih\CriteoTracker\CriteoLoader  ;
+
+
+// Initialisez Criteo en passant votre ID Criteo
+$loader  = CriteoLoader::init('VOTRE_ID_CRITEO');
+
+// Obtenez le code JavaScript pour inclure le fichier distant  Criteo
+$header = $this->loader->getCriteoLoaderFile();
+echo '<head>';
+echo $header;
+echo '</head>';
+
+$items =  [
+    ["id" => "prudct_id_1", "price" => 200, "quantity"=> 1]
+];
+// Affichez la vue d'une page de convertion en passant les IDS des produits, quantités, prix et l id de la transaction
+// ainsi que des options spécifiques à la page, par exemple les dates de check-in et de check-out
+$loader->trackTransactionEvent(
+    transactionId:'TRANSACTION_ID'
+    items:$items, 
+    checkin: 'DATE_CHECKIN',
+    checkout: 'DATE_CHECKOUT',
+    nbrAdults: 'NUMBER_ADULTS',
+    nbrChildren: 'NUMBER_CHILDS',
+    nbrInfants: "NUMBER_INFANTS"
 );
 
 // Affichez le tag dans votre page HTML avant la fermeture du body 
